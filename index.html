@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trader</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Space Grotesk', 'Courier New', monospace; }
+
+  :root {
+    --bg: #f5f0e1;
+    --ink: #000;
+    --yellow: #ffe94a;
+    --green: #4ade80;
+    --red: #ff5757;
+    --blue: #7dd3fc;
+    --purple: #c4b5fd;
+    --border: 3px solid #000;
+    --shadow: 6px 6px 0 #000;
+    --shadow-sm: 4px 4px 0 #000;
+  }
+
+  body {
+    background: var(--bg);
+    background-image:
+      linear-gradient(#00000012 1px, transparent 1px),
+      linear-gradient(90deg, #00000012 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 1.2rem;
+    font-weight: 600;
+  }
+
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--yellow);
+    border: var(--border);
+    box-shadow: var(--shadow);
+    padding: 1rem 1.4rem;
+    margin-bottom: 1.4rem;
+    flex-wrap: wrap; gap: 1rem;
+  }
+
+  .brand { display: flex; align-items: center; gap: 0.7rem; }
+  .brand-icon {
+    width: 40px; height: 40px;
+    background: var(--ink);
+    display: grid; place-items: center;
+    border: var(--border);
+    box-shadow: 3px 3px 0 #000;
+  }
+  .brand h1 { font-size: 1.4rem; letter-spacing: -0.5px; text-transform: uppercase; }
+  .device-id {
+    font-size: 0.65rem; letter-spacing: 1px;
+    background: #fff; border: 2px solid #000;
+    padding: 0.2rem 0.5rem; margin-top: 4px;
+    display: inline-block; text-transform: uppercase;
+    cursor: pointer;
+  }
+  .device-id:hover { background: var(--blue); }
+
+  .stats { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+  .stat {
+    background: #fff;
+    border: var(--border);
+    box-shadow: var(--shadow-sm);
+    padding: 0.5rem 0.9rem;
+    min-width: 120px;
+  }
+  .stat-label {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
+    color: #555; display: flex; align-items: center; gap: 0.3rem;
+  }
+  .stat-value { font-size: 1.05rem; font-weight: 800; margin-top: 2px; }
+
+  main {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.4rem;
+  }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+  .card {
+    background: #fff;
+    border: var(--border);
+    box-shadow: var(--shadow);
+    padding: 1.2rem;
+  }
+
+  .card-title {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;
+    padding-bottom: 0.7rem; margin-bottom: 1rem;
+    border-bottom: var(--border);
+  }
+
+  .price-row {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 1rem; flex-wrap: wrap; gap: 0.8rem;
+  }
+  .pair { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: #444; }
+  .price {
+    font-size: 2.4rem; font-weight: 900; letter-spacing: -1.5px;
+    line-height: 1; margin-top: 0.3rem;
+  }
+  .price.up { color: #16a34a; }
+  .price.down { color: #dc2626; }
+
+  .change {
+    border: var(--border);
+    padding: 0.35rem 0.7rem;
+    font-weight: 800;
+    font-size: 0.9rem;
+    box-shadow: 3px 3px 0 #000;
+    display: flex; align-items: center; gap: 0.3rem;
+  }
+  .change.up { background: var(--green); }
+  .change.down { background: var(--red); color: #fff; }
+
+  canvas {
+    width: 100%; height: 300px; display: block;
+    border: var(--border);
+    background: #fafafa;
+  }
+
+  .panel-label {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
+    margin: 1rem 0 0.4rem;
+  }
+
+  input[type=number] {
+    width: 100%;
+    padding: 0.8rem 0.9rem;
+    background: #fff;
+    border: var(--border);
+    box-shadow: var(--shadow-sm);
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: inherit;
+    outline: none;
+  }
+  input[type=number]:focus { background: var(--yellow); }
+
+  .quick-row { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+  .quick {
+    flex: 1; padding: 0.4rem;
+    background: #fff;
+    border: var(--border);
+    font-weight: 800; font-size: 0.75rem;
+    cursor: pointer; text-transform: uppercase;
+    box-shadow: 2px 2px 0 #000;
+    transition: all 0.1s;
+  }
+  .quick:hover { background: var(--blue); }
+  .quick:active { transform: translate(2px, 2px); box-shadow: none; }
+
+  .allin-row {
+    display: flex; gap: 0.5rem; margin-top: 0.5rem;
+  }
+  .allin {
+    flex: 1;
+    padding: 0.6rem 0.5rem;
+    background: var(--purple);
+    border: var(--border);
+    box-shadow: var(--shadow-sm);
+    font-weight: 900; font-size: 0.75rem;
+    cursor: pointer; text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    transition: all 0.1s;
+  }
+  .allin:hover { background: #b8a4fc; }
+  .allin:active { transform: translate(4px, 4px); box-shadow: none; }
+
+  .buttons { display: flex; gap: 0.7rem; margin-top: 1.2rem; }
+  button.trade {
+    flex: 1; padding: 0.9rem;
+    border: var(--border);
+    box-shadow: var(--shadow-sm);
+    font-weight: 900; font-size: 1rem;
+    text-transform: uppercase; letter-spacing: 1px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    font-family: inherit;
+    transition: all 0.1s;
+  }
+  button.trade:active { transform: translate(4px, 4px); box-shadow: none; }
+  .buy { background: var(--green); color: #000; }
+  .sell { background: var(--red); color: #fff; }
+
+  .history-header {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;
+    padding-bottom: 0.7rem; margin: 1.4rem 0 0.7rem;
+    border-bottom: var(--border);
+  }
+
+  #history { list-style: none; max-height: 240px; overflow-y: auto; }
+  #history li {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.6rem 0.7rem;
+    border: 2px solid #000;
+    margin-bottom: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: 2px 2px 0 #000;
+  }
+  #history li.buy { background: #dcfce7; }
+  #history li.sell { background: #fee2e2; }
+  #history li .tag {
+    font-size: 0.65rem; padding: 0.15rem 0.4rem;
+    border: 2px solid #000; letter-spacing: 1px;
+  }
+  #history li.buy .tag { background: var(--green); }
+  #history li.sell .tag { background: var(--red); color: #fff; }
+  #history .empty {
+    text-align: center; color: #666; font-size: 0.8rem;
+    padding: 1rem; border: 2px dashed #999; font-weight: 500;
+  }
+
+  .toast {
+    position: fixed; top: 1.2rem; right: 1.2rem;
+    padding: 0.9rem 1.2rem;
+    border: var(--border);
+    box-shadow: var(--shadow);
+    font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+    font-size: 0.85rem;
+    opacity: 0; transform: translate(20px, -20px);
+    transition: all 0.2s;
+    pointer-events: none; z-index: 100;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .toast.show { opacity: 1; transform: translate(0, 0); }
+  .toast.ok { background: var(--green); color: #000; }
+  .toast.err { background: var(--red); color: #fff; }
+
+  .icon { width: 16px; height: 16px; flex-shrink: 0; }
+  .icon-lg { width: 20px; height: 20px; }
+
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: #fff; border-left: 2px solid #000; }
+  ::-webkit-scrollbar-thumb { background: #000; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="#ffe94a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 17 9 11 13 15 21 7"/>
+        <polyline points="14 7 21 7 21 14"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Trader</h1>
+      <div class="device-id" id="deviceId" title="Klik untuk salin ID">ID: -</div>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="6" width="20" height="12" rx="2"/>
+          <circle cx="12" cy="12" r="2"/>
+        </svg>
+        Saldo
+      </div>
+      <div class="stat-value" id="balance">$10,000.00</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M9 9h6M9 15h6M12 6v12"/>
+        </svg>
+        BTC
+      </div>
+      <div class="stat-value" id="holdings">0.0000</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 3v18h18"/>
+          <path d="M7 15l4-4 3 3 5-6"/>
+        </svg>
+        Equity
+      </div>
+      <div class="stat-value" id="equity">$10,000.00</div>
+    </div>
+    <div class="stat" style="cursor:pointer" id="resetBtn" title="Reset data device ini">
+      <div class="stat-label">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 3-6.7L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+        Reset
+      </div>
+      <div class="stat-value">DATA</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <div class="card-title">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 3v18h18"/>
+        <path d="M7 14l4-4 3 3 6-7"/>
+      </svg>
+      Market
+    </div>
+    <div class="price-row">
+      <div>
+        <div class="pair">BTC / USDT</div>
+        <div class="price up" id="price">$50,000.00</div>
+      </div>
+      <div class="change up" id="change">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="18 15 12 9 6 15"/>
+        </svg>
+        <span id="changeText">0.00%</span>
+      </div>
+    </div>
+    <canvas id="chart"></canvas>
+  </section>
+
+  <section class="card">
+    <div class="card-title">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+      Order Panel
+    </div>
+
+    <div class="panel-label">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 7h16M4 12h16M4 17h10"/>
+      </svg>
+      Jumlah (BTC)
+    </div>
+    <input type="number" id="amount" value="0.01" step="0.0001" min="0.0001">
+
+    <div class="quick-row">
+      <button class="quick" data-amt="0.001">0.001</button>
+      <button class="quick" data-amt="0.01">0.01</button>
+      <button class="quick" data-amt="0.1">0.1</button>
+      <button class="quick" data-amt="1">1</button>
+    </div>
+
+    <div class="allin-row">
+      <button class="allin" id="allinBuy">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+        All In Beli
+      </button>
+      <button class="allin" id="allinSell">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+        All In Jual
+      </button>
+    </div>
+
+    <div class="buttons">
+      <button class="trade buy" id="buyBtn">
+        <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Buy
+      </button>
+      <button class="trade sell" id="sellBtn">
+        <svg class="icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Sell
+      </button>
+    </div>
+
+    <div class="history-header">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <polyline points="12 7 12 12 15 15"/>
+      </svg>
+      Riwayat
+    </div>
+    <ul id="history">
+      <li class="empty">Belum ada transaksi</li>
+    </ul>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   DEVICE ID + PERSISTENSI
+   ========================================================= */
+const STORAGE_PREFIX = 'trader_v1_';
+const DEVICE_KEY = 'trader_v1_device_id';
+
+function generateUUID() {
+  if (crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxx-xxxx-4xxx-yxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+function getDeviceId() {
+  let id = localStorage.getItem(DEVICE_KEY);
+  if (!id) {
+    id = generateUUID();
+    localStorage.setItem(DEVICE_KEY, id);
+  }
+  return id;
+}
+
+const DEVICE_ID = getDeviceId();
+const STORAGE_KEY = STORAGE_PREFIX + DEVICE_ID;
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) { return null; }
+}
+
+function saveState() {
+  try {
+    const payload = {
+      balance: state.balance,
+      holdings: state.holdings,
+      price: state.price,
+      prevPrice: state.prevPrice,
+      history: state.history,
+      trades: state.trades,
+      tradeLog: state.tradeLog,
+      lastTick: Date.now()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch (e) {}
+}
+
+/* =========================================================
+   STATE
+   ========================================================= */
+const state = {
+  balance: 10000,
+  holdings: 0,
+  price: 50000,
+  prevPrice: 50000,
+  history: Array(60).fill(50000),
+  trades: 0,
+  tradeLog: [],
+  lastTick: Date.now()
+};
+
+/* Muat state tersimpan */
+const saved = loadState();
+if (saved) {
+  state.balance = saved.balance ?? state.balance;
+  state.holdings = saved.holdings ?? state.holdings;
+  state.price = saved.price ?? state.price;
+  state.prevPrice = saved.prevPrice ?? state.prevPrice;
+  state.history = saved.history && saved.history.length ? saved.history : state.history;
+  state.trades = saved.trades ?? 0;
+  state.tradeLog = saved.tradeLog ?? [];
+  state.lastTick = saved.lastTick ?? Date.now();
+}
+
+/* =========================================================
+   CATCH-UP: harga tetap naik-turun walau web ditutup
+   Setiap tick simulasi = 1.5 detik
+   ========================================================= */
+function catchUpMarket() {
+  const now = Date.now();
+  const elapsed = now - (state.lastTick || now);
+  const TICK_MS = 1500;
+  const missed = Math.floor(elapsed / TICK_MS);
+  if (missed <= 0) return 0;
+
+  const steps = Math.min(missed, 20000); // batas aman
+  for (let i = 0; i < steps; i++) {
+    // random walk dengan sedikit drift
+    const drift = (Math.random() - 0.5) * 400 + (Math.random() - 0.5) * 50;
+    state.price = Math.max(1000, state.price + drift);
+    state.history.push(state.price);
+    state.history.shift();
+  }
+  state.lastTick = state.lastTick + steps * TICK_MS;
+  // kalau sisa > TICK_MS, majukan
+  state.lastTick = now - (elapsed % TICK_MS);
+  return steps;
+}
+
+const $ = id => document.getElementById(id);
+const canvas = $('chart');
+const ctx = canvas.getContext('2d');
+
+function fmt(n) {
+  return '$' + n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  canvas._w = rect.width;
+  canvas._h = rect.height;
+}
+
+function updateUI() {
+  $('balance').textContent = fmt(state.balance);
+  $('holdings').textContent = state.holdings.toFixed(4);
+  $('equity').textContent = fmt(state.balance + state.holdings * state.price);
+
+  const priceEl = $('price');
+  priceEl.textContent = fmt(state.price);
+  priceEl.classList.toggle('up', state.price >= state.prevPrice);
+  priceEl.classList.toggle('down', state.price < state.prevPrice);
+
+  const base = state.prevPrice || state.price || 1;
+  const pct = ((state.price - base) / base * 100);
+  const changeEl = $('change');
+  const up = pct >= 0;
+  changeEl.classList.toggle('up', up);
+  changeEl.classList.toggle('down', !up);
+  $('changeText').textContent = (up ? '+' : '') + pct.toFixed(2) + '%';
+  changeEl.querySelector('svg').innerHTML = up
+    ? '<polyline points="18 15 12 9 6 15"/>'
+    : '<polyline points="6 9 12 15 18 9"/>';
+}
+
+function drawChart() {
+  const w = canvas._w;
+  const h = canvas._h;
+  if (!w || !h) return;
+
+  ctx.clearRect(0, 0, w, h);
+
+  const min = Math.min(...state.history);
+  const max = Math.max(...state.history);
+  const range = max - min || 1;
+  const pad = 14;
+
+  ctx.strokeStyle = '#e5e5e5';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad + (h - pad*2) * (i / 4);
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
+  for (let i = 0; i <= 6; i++) {
+    const x = (w / 6) * i;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, h);
+    ctx.stroke();
+  }
+
+  const up = state.price >= state.prevPrice;
+  const color = up ? '#16a34a' : '#dc2626';
+
+  ctx.beginPath();
+  ctx.moveTo(0, h);
+  state.history.forEach((p, i) => {
+    const x = (i / (state.history.length - 1)) * w;
+    const y = pad + (h - pad*2) * (1 - (p - min) / range);
+    ctx.lineTo(x, y);
+  });
+  ctx.lineTo(w, h);
+  ctx.closePath();
+  ctx.fillStyle = up ? 'rgba(74,222,128,0.35)' : 'rgba(255,87,87,0.35)';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+  state.history.forEach((p, i) => {
+    const x = (i / (state.history.length - 1)) * w;
+    const y = pad + (h - pad*2) * (1 - (p - min) / range);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  const lastX = w;
+  const lastY = pad + (h - pad*2) * (1 - (state.history[state.history.length-1] - min) / range);
+  ctx.beginPath();
+  ctx.arc(lastX - 3, lastY, 6, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+function showToast(msg, type) {
+  const t = $('toast');
+  const icon = type === 'ok'
+    ? '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+    : '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  t.innerHTML = icon + '<span>' + msg + '</span>';
+  t.className = 'toast show ' + type;
+  clearTimeout(t._t);
+  t._t = setTimeout(() => { t.className = 'toast ' + type; }, 1800);
+}
+
+function renderHistory() {
+  const list = $('history');
+  list.innerHTML = '';
+  if (!state.tradeLog.length) {
+    list.innerHTML = '<li class="empty">Belum ada transaksi</li>';
+    return;
+  }
+  state.tradeLog.slice(0, 50).forEach(tr => {
+    const li = document.createElement('li');
+    li.className = tr.type;
+    li.innerHTML =
+      '<span><span class="tag">' + (tr.label || tr.type.toUpperCase()) + '</span> ' + tr.amount.toFixed(4) + ' BTC</span>' +
+      '<span>' + fmt(tr.price * tr.amount) + '</span>';
+    list.appendChild(li);
+  });
+}
+
+function addTrade(amount, price, type, label) {
+  const tr = { amount, price, type, label, time: Date.now() };
+  state.tradeLog.unshift(tr);
+  if (state.tradeLog.length > 100) state.tradeLog.length = 100;
+  renderHistory();
+  saveState();
+}
+
+function simulate() {
+  state.prevPrice = state.price;
+  const drift = (Math.random() - 0.5) * 400;
+  state.price = Math.max(1000, state.price + drift);
+  state.history.push(state.price);
+  state.history.shift();
+  updateUI();
+  drawChart();
+  state.lastTick = Date.now();
+  saveState();
+}
+
+function getAmount() {
+  const v = parseFloat($('amount').value);
+  return isNaN(v) ? 0 : v;
+}
+
+function buy() {
+  const amt = getAmount();
+  if (amt <= 0) return showToast('Jumlah tidak valid', 'err');
+  const cost = amt * state.price;
+  if (cost > state.balance) return showToast('Saldo tidak cukup', 'err');
+  state.balance -= cost;
+  state.holdings += amt;
+  state.trades++;
+  updateUI();
+  addTrade(amt, state.price, 'buy');
+  showToast('Beli ' + amt + ' BTC', 'ok');
+}
+
+function sell() {
+  const amt = getAmount();
+  if (amt <= 0) return showToast('Jumlah tidak valid', 'err');
+  if (amt > state.holdings) return showToast('BTC tidak cukup', 'err');
+  state.balance += amt * state.price;
+  state.holdings -= amt;
+  state.trades++;
+  updateUI();
+  addTrade(amt, state.price, 'sell');
+  showToast('Jual ' + amt + ' BTC', 'ok');
+}
+
+function allinBuy() {
+  if (state.balance <= 0) return showToast('Saldo kosong', 'err');
+  const spend = state.balance;
+  const amt = spend / state.price;
+  state.balance = 0;
+  state.holdings += amt;
+  state.trades++;
+  updateUI();
+  addTrade(amt, state.price, 'buy', 'ALL IN BUY');
+  showToast('All in beli ' + amt.toFixed(4) + ' BTC', 'ok');
+}
+
+function allinSell() {
+  if (state.holdings <= 0) return showToast('BTC kosong', 'err');
+  const amt = state.holdings;
+  const revenue = amt * state.price;
+  state.balance += revenue;
+  state.holdings = 0;
+  state.trades++;
+  updateUI();
+  addTrade(amt, state.price, 'sell', 'ALL IN SELL');
+  showToast('All in jual ' + amt.toFixed(4) + ' BTC', 'ok');
+}
+
+/* =========================================================
+   DEVICE ID UI
+   ========================================================= */
+const shortId = DEVICE_ID.slice(0, 8).toUpperCase();
+$('deviceId').textContent = 'ID: ' + shortId;
+$('deviceId').title = 'Device ID: ' + DEVICE_ID + ' (klik untuk salin)';
+$('deviceId').onclick = () => {
+  navigator.clipboard && navigator.clipboard.writeText(DEVICE_ID);
+  showToast('ID disalin', 'ok');
+};
+
+$('resetBtn').onclick = () => {
+  if (!confirm('Reset semua data (saldo, BTC, riwayat) untuk device ini?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+};
+
+/* =========================================================
+   INIT
+   ========================================================= */
+$('buyBtn').onclick = buy;
+$('sellBtn').onclick = sell;
+$('allinBuy').onclick = allinBuy;
+$('allinSell').onclick = allinSell;
+
+document.querySelectorAll('.quick').forEach(btn => {
+  btn.onclick = () => { $('amount').value = btn.dataset.amt; };
+});
+
+window.addEventListener('resize', () => { resizeCanvas(); drawChart(); });
+
+/* sebelum unload, simpan */
+window.addEventListener('beforeunload', saveState);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) saveState();
+});
+
+resizeCanvas();
+catchUpMarket();   // <-- kunci: harga tetap bergerak walau web ditutup
+renderHistory();
+updateUI();
+drawChart();
+setInterval(simulate, 1500);
+</script>
+</body>
+</html>
